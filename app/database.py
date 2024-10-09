@@ -1,16 +1,18 @@
 import os
-import firebase_admin
-from firebase_admin import credentials, firestore
-from dotenv import load_dotenv
+import json
+from google.cloud import firestore
+from google.oauth2 import service_account
 
-# Load environment variables
-load_dotenv()
+# Get the FIRESTORE_CREDENTIALS_JSON environment variable
+firestore_credentials_json = os.getenv('FIRESTORE_CREDENTIALS_JSON')
+if firestore_credentials_json:
+    # Parse the JSON string
+    credentials_info = json.loads(firestore_credentials_json)
 
-# Initialize Firestore DB
-def init_firestore():
-    cred = credentials.Certificate(os.getenv('FIRESTORE_CREDENTIALS'))
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-    return db
+    # Create credentials from the parsed JSON
+    credentials = service_account.Credentials.from_service_account_info(credentials_info)
 
-db = init_firestore()
+    # Initialize Firestore client with the credentials
+    db = firestore.Client(credentials=credentials)
+else:
+    raise Exception("Firestore credentials not provided.")

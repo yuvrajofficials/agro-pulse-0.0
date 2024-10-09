@@ -1,0 +1,30 @@
+# Dockerfile
+
+FROM python:3.9-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY app ./app
+
+# Copy entrypoint script
+COPY entrypoint.sh .
+
+# Copy .env file (Optional: In production, set environment variables differently)
+# COPY .env .   # Do not copy .env in production
+
+# Expose port
+EXPOSE 8000
+
+# Run the entrypoint script
+ENTRYPOINT ["sh", "entrypoint.sh"]

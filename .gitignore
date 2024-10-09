@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Environment Variables
+.env
+
+# Firestore Credentials
+firestore-key.json

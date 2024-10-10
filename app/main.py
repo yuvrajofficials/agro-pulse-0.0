@@ -3,8 +3,16 @@ from app.models import UserCreate, UserLogin, PhoneLogin
 from app.database import db
 from app.auth import hash_password, verify_password, create_access_token
 from google.cloud.firestore_v1 import DocumentSnapshot
+import tensorflow as tf
+from fastapi import FastAPI, UploadFile, File
+from PIL import Image
+import numpy as np
+import io
+
 
 app = FastAPI()
+model = tf.keras.models.load_model("wheat_disdet.h5")
+
 
 # User Registration
 @app.post("/register")
@@ -74,7 +82,43 @@ async def login_user_phone(user: PhoneLogin):
 
     return {"access_token": token, "token_type": "bearer"}
 
+
+disease_categories = ['Brown rust', 'Healthy', 'Loose Smut', 'Septoria', 'Yellow rust']
+
+# Preprocessing function to prepare the image
+def preprocess_image(image: Image.Image) -> np.ndarray:
+    image = image.resize((150, 150))  # Resize image to the input size of your model
+    image = image.convert("RGB")      # Ensure the image is in RGB format
+    image = np.array(image) / 255.0   # Normalize pixel values
+    image = np.expand_dims(image, axis=0)  # Add batch dimension (1, 150, 150, 3)
+    return image
+
+# Prediction endpoint
+@app.post("/predict/")
+async def predict(file: UploadFile = File(...)):
+    # Read and open the uploaded image
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents))
+
+    # Preprocess the image
+    preprocessed_image = preprocess_image(image)
+
+    # Make prediction
+    prediction = model.predict(preprocessed_image)
+
+    # Get the predicted class
+    predicted_class = np.argmax(prediction, axis=1)[0]
+
+    # Map the predicted class to the disease category
+    predicted_disease = disease_categories[predicted_class]
+
+    return {"predicted_disease": predicted_disease}
+
+
+
 # Protected Route (Example)
 @app.get("/protected")
 async def protected_route(token: str = Depends(create_access_token)):
     return {"message": "You are in a protected area."}
+
+

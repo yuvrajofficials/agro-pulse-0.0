@@ -1,4 +1,4 @@
-#!/home/yuvraj-sankilwar/Files/Python Development/login-backend/.venv/bin/python
+#!/home/yuvraj-sankilwar/Files/Python Development/agro-pulse/.venv/bin/python
 # -*- coding: utf-8 -*-
 # Copyright 2024 Google LLC
 #
